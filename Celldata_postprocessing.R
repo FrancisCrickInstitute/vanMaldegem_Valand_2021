@@ -5,16 +5,16 @@
 
 
 # Load packages
-library("readr")
-library("ggplot2")
-library("dplyr")
+library(tidyverse)
 
-# Set directory where files will be saved
+
+# Set working directory to folder that was downloaded.
+
 # Set output_dir as path/outputs/
-output_dir = "~path/outputs/"
+output_dir = "outputs/"
 
 # Set filenm as path/Figure_3_input/input_celldata_postprocessing.csv"
-filenm = "~path/Figure_3_input/input_celldata_postprocessing.csv"
+filenm = "Figures_input/input_celldata_postprocessing.csv"
 # Read in dataset
 celldata = read.csv(filenm)
 
@@ -35,6 +35,13 @@ for (u in unique_ROInames){
 }
 # ROI_name3 as number_treatment
 celldata$ROI_name3 = paste(celldata$ROI_name2,celldata$treatment, sep = "_" )
+
+# Add column for mouse ID
+unique(celldata$ROI_name)
+celldata$MouseID = substring(celldata$ROI_name, first = 1, last = 11)
+celldata$MouseID = paste(celldata$MouseID, celldata$treatment, sep = "_")
+unique(celldata$MouseID)
+
 
 # Generate columns to annotate domain ("Normal", "Tumour", "Interface")
 celldata$domain = as.character(celldata$MI_NormalminusInterface)
@@ -58,11 +65,7 @@ celldata$domain2[which(celldata$MI_StructuralImage>0)] = "Structural"
 celldata$cluster2 = stringr::str_pad(celldata$cluster, 2, side="left", pad="0") 
 
 # Split clusters based on thresholds for marker intensities
-celldata[which(celldata$cluster == 21
-               & celldata$MI_CD206 >= 0.5), "cluster2"] = "21A"
-celldata[which(celldata$cluster == 21
-               & celldata$MI_CD68 >= 0.5), "cluster2"] = "21A"
-celldata[which(celldata$cluster2 == "21"), "cluster2"] = "21B"
+
 
 celldata[which(celldata$cluster == 05
                & celldata$MI_F480 >= 0.5), "cluster2"] = "05A"
@@ -70,15 +73,28 @@ celldata[which(celldata$cluster == 05
                & celldata$MI_CD11c >= 0.6), "cluster2"] = "05B"
 celldata[which(celldata$cluster2 == "05"), "cluster2"] = "05C"
 
-celldata[which(celldata$cluster == 29
-               & celldata$MI_EPCAM >= 0.7), "cluster2"] = "29A"
-celldata[which(celldata$cluster2 == "29"), "cluster2"] = "29B"
+celldata[which(celldata$cluster == 6
+               & celldata$MI_Foxp3 >= 0.6), "cluster2"] = "06A"
+celldata[which(celldata$cluster2 == "06"), "cluster2"] = "06B"
+celldata[which(celldata$cluster == 3
+               & celldata$MI_Foxp3 >= 0.6), "cluster2"] = "06A"
+
 
 celldata[which(celldata$cluster == 15
                & celldata$MI_NKp46 >= 1.5 
                & celldata$MI_pS6 <= 0.1
                & celldata$MI_Foxp3 <= 0.2), "cluster2"] = "15A"
 celldata[which(celldata$cluster2 == "15"), "cluster2"] = "15B"
+
+celldata[which(celldata$cluster == 21
+               & celldata$MI_CD206 >= 0.5), "cluster2"] = "21A"
+celldata[which(celldata$cluster == 21
+               & celldata$MI_CD68 >= 0.5), "cluster2"] = "21A"
+celldata[which(celldata$cluster2 == "21"), "cluster2"] = "21B"
+
+celldata[which(celldata$cluster == 29
+               & celldata$MI_EPCAM >= 0.7), "cluster2"] = "29A"
+celldata[which(celldata$cluster2 == "29"), "cluster2"] = "29B"
 
 
 # Manually assign cluster labels 
@@ -95,54 +111,37 @@ celldata[which(celldata$cluster2 == "15A"), "clustername"] = "15A_NK cells"
 celldata[which(celldata$cluster2 == "15B"), "clustername"] = "15B_Tumour"
 celldata[which(celldata$cluster2 == "24"), "clustername"] = "24_Fibroblasts"
 celldata[which(celldata$cluster2 == "05A"), "clustername"] = "05A_Macrophages"
-celldata[which(celldata$cluster2 == "05B"), "clustername"] = "05B_Dendritic cells"
+celldata[which(celldata$cluster2 == "05B"), "clustername"] = "05B_Dendritic cells other"
 celldata[which(celldata$cluster2 == "05C"), "clustername"] = "05C_Tumour"
-celldata[which(celldata$cluster2 == "27"), "clustername"] = "27_Dendritic cells"
+celldata[which(celldata$cluster2 == "27"), "clustername"] = "27_Dendritic cells other"
 celldata[which(celldata$cluster2 == "11"), "clustername"] = "11_Macrophages"
 celldata[which(celldata$cluster2 == "07"), "clustername"] = "07_Endothelium"
 celldata[which(celldata$cluster2 == "08"), "clustername"] = "08_Macrophages"
-celldata[which(celldata$cluster2 == "06"), "clustername"] = "06_T cells"
-celldata[which(celldata$cluster2 == "25"), "clustername"] = "25_T cells"
+celldata[which(celldata$cluster2 == "06A"), "clustername"] = "06A_Regulatory T cells"
+celldata[which(celldata$cluster2 == "06B"), "clustername"] = "06B_CD4 T cells"
+celldata[which(celldata$cluster2 == "25"), "clustername"] = "25_CD8 T cells"
 celldata[which(celldata$cluster2 == "13"), "clustername"] = "13_Endothelium"
 celldata[which(celldata$cluster2 == "19"), "clustername"] = "19_Endothelium"
-celldata[which(celldata$cluster2 == "12"), "clustername"] = "12_Normal lung"
+celldata[which(celldata$cluster2 == "12"), "clustername"] = "12_Unclassified"
 celldata[which(celldata$cluster2 == "20"), "clustername"] = "20_Neutrophils"
 celldata[which(celldata$cluster2 == "29A"), "clustername"] = "29A_Epithelium"
 celldata[which(celldata$cluster2 == "29B"), "clustername"] = "29B_Endothelium"
 celldata[which(celldata$cluster2 == "09"), "clustername"] = "09_B cells"
 celldata[which(celldata$cluster2 == "14"), "clustername"] = "14_Endothelium"
-celldata[which(celldata$cluster2 == "04"), "clustername"] = "04_Normal lung"
+celldata[which(celldata$cluster2 == "04"), "clustername"] = "04_Unclassified"
 celldata[which(celldata$cluster2 == "30"), "clustername"] = "30_Neutrophils"
-celldata[which(celldata$cluster2 == "03"), "clustername"] = "03_Dendritic cells"
+celldata[which(celldata$cluster2 == "03"), "clustername"] = "03_Dendritic cells cDC1"
 celldata[which(celldata$cluster2 == "23"), "clustername"] = "23_Macrophages"
 celldata[which(celldata$cluster2 == "18"), "clustername"] = "18_Epithelium"
 celldata[which(celldata$cluster2 == "28"), "clustername"] = "28_Fibroblasts"
 
 
-unique(celldata$clustername)
-
-celldata$metacluster = as.character(celldata$clustername)
-celldata[grep("Tumour", celldata$clustername), "metacluster"] = "Tumour"
-celldata[grep("Normal", celldata$clustername), "metacluster"] = "Normal"
-celldata[grep("Endothelium", celldata$clustername), "metacluster"] = "Vessels"
-celldata[grep("Macrophage", celldata$clustername), "metacluster"] = "Myeloid: macrophages"
-celldata[grep("T cells", celldata$clustername), "metacluster"] = "Lymphocytes"
-celldata[grep("B cells", celldata$clustername), "metacluster"] = "Lymphocytes"
-celldata[grep("NK cells", celldata$clustername), "metacluster"] = "Lymphocytes"
-celldata[grep("Neutrophils", celldata$clustername), "metacluster"] = "Myeloid: neutrophils"
-celldata[grep("Fibroblasts", celldata$clustername), "metacluster"] = "Fibroblasts"
-celldata[grep("Dendritic", celldata$clustername), "metacluster"] = "Myeloid: dendritic cells"
-celldata[grep("Epithelium", celldata$clustername), "metacluster"] = "Epithelium"
-unique(celldata$metacluster)
+celldata$clustername2 = str_split(celldata$clustername, pattern = "_", simplify = TRUE)[,2]
 
 
+unique(celldata$clustername2)
 
-# Split macrophage metacluster into three subtypes, two major subtypes
-
-celldata$metacluster2 = as.character(celldata$metacluster)
-celldata[which(celldata$cluster2 %in% c("11")), "metacluster2"] = "Myeloid: macrophages type 1"
-celldata[which(celldata$cluster2 %in% c("05A", "08", "26" )), "metacluster2"] = "Myeloid: macrophages type 2"
-unique(celldata$metacluster2)
+# clustername3 is defined in the code for figures, based on the macrophage uMAP.
 
 # Write file to be used as input for the figures, or use "input_celldata_complete.csv" to continue
 filenm = paste(output_dir, "celldata_complete.csv", sep = "")
